@@ -32,9 +32,9 @@ class SingleSignCapture(models.Model):
     raw_capture_data_gyr = models.BinaryField(null=False, default='')
 
 class RecognizeInfo:
-    def __init__(self, result_text, middle_symbol, raw_capture_data, capture_armband, sign_request_id):
-        self.result_text = result_text
-        self.middle_symbol = middle_symbol
+    def __init__(self, raw_capture_data, capture_armband, sign_request_id):
+        self.result_text = ['']
+        self.middle_symbol = ['']
         self.raw_capture_data = raw_capture_data
         self.capture_armband = capture_armband
         self.sign_request_id = sign_request_id
@@ -42,8 +42,8 @@ class RecognizeInfo:
 
     def create_recognize_history(self):
         db_obj = SignRecognizeHistory.objects.create(
-            result_text=self.result_text,
-            middle_symbol=self.middle_symbol,
+            result_text=self.get_result_text_str(),
+            middle_symbol=self.get_middle_symbol_str(),
             capture_armband=self.capture_armband,
             sign_request_id=self.sign_request_id,
         )
@@ -67,15 +67,15 @@ class RecognizeInfo:
     def get_feedback_data(self):
         data = {
             'control': 'update_recognize_res',
-            'text': self.result_text,
+            'text': self.result_text[-1],
             'sign_id': self.sign_request_id,
             'capture_id': self.capture_id,
         }
         return data
 
     def append_recognize_result(self, text, middle_symbol, raw_capture_data):
-        self.result_text += text
-        self.middle_symbol += "\n" + str(middle_symbol)
+        self.result_text.append(text)
+        self.middle_symbol.append(str(middle_symbol))
 
         SingleSignCapture.objects.create(
             raw_capture_data_acc=pickle.dumps(raw_capture_data['acc']),
@@ -89,6 +89,13 @@ class RecognizeInfo:
         db_obj = SignRecognizeHistory.objects.filter(capture_id=self.capture_id)
         db_obj.update(result_text=self.result_text)
         db_obj.update(middle_symbol=self.middle_symbol)
+
+    def get_result_text_str(self):
+        return " ".join(self.result_text)
+
+    def get_middle_symbol_str(self):
+        return " ".join(self.middle_symbol)
+
 
 def get_latest_sign_id():
     # 查询数据库获取当前序号

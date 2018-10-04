@@ -30,7 +30,6 @@ def feature_extract_single_polyfit(data, compress):
     16 points window and 3-order poly fit
     compress mean take out some point in sequence according to fix length internal,
     likes down sampling
-
     :param data: data mat contains three channel data
     :param compress: compress ratio, the sampling window
             # 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  rate = 2
@@ -38,7 +37,7 @@ def feature_extract_single_polyfit(data, compress):
     :return: after fitting data 3 dim, but data len in each dim has changed by compress rate
     """
     seg_poly_fit = None
-    window_range = 16
+    window_range = 12
     start_ptr = 0
     end_ptr = window_range
     while end_ptr <= len(data):
@@ -66,44 +65,33 @@ def feature_extract_single_polyfit(data, compress):
 
         # assemble each window data
         if seg_poly_fit is None:
-            seg_poly_fit = window_extract_data
+            seg_poly_fit = np.vstack((window_extract_data[0:2], window_extract_data[2:4] / 2))
+            seg_poly_fit = np.vstack((seg_poly_fit, window_extract_data[4:6] / 3))
         else:
-            seg_poly_fit = np.vstack((seg_poly_fit, window_extract_data))
-        start_ptr += window_range
-        end_ptr += window_range
+            if seg_poly_fit.shape[0] == 6:
+                seg_poly_fit[seg_poly_fit.shape[0] - 4:seg_poly_fit.shape[0] - 2] += window_extract_data[0:2] / 2
+                seg_poly_fit[seg_poly_fit.shape[0] - 2:seg_poly_fit.shape[0]] += window_extract_data[2:4] / 3
+            else:
+                seg_poly_fit[seg_poly_fit.shape[0] - 4:seg_poly_fit.shape[0]] += window_extract_data[0:4] / 3
+            if end_ptr == len(data):
+                seg_poly_fit = np.vstack((seg_poly_fit, window_extract_data[2:4] / 2))
+                seg_poly_fit = np.vstack((seg_poly_fit, window_extract_data[4:6]))
+            else:
+                seg_poly_fit = np.vstack((seg_poly_fit, window_extract_data[4:6] / 3))
+        # if seg_poly_fit is None:
+        #     seg_poly_fit = window_extract_data
+        # else:
+        #     seg_poly_fit = np.vstack((seg_poly_fit, window_extract_data))
+        start_ptr += 4
+        end_ptr += 4
 
     return seg_poly_fit
 
 
-def append_feature_vector(data_set, with_emg=False):
-    """
-    拼接三种数据采集类型的特征数据成一个大向量
-    :param data_set: 第一维存储三种采集类型数据集的list
-                     第二维是这个类型数据三种特征拼接后 每次采集获得的数据矩阵
-    :param with_emg: 是否将emg也拼接进入向量
-    :return:
-    """
-
-    batch_list = []
-    # 每种采集类型下有多个数据
-    for i in range(len(data_set[0])):
-        # 取出每个采集类型的数据列中的每个数据进行拼接
-        if with_emg:
-            batch_mat = append_single_data_feature(acc_data=data_set[0][i],
-                                                   gyr_data=data_set[1][i],
-                                                   emg_data=data_set[2][i], )
-        else:
-            batch_mat = append_single_data_feature(acc_data=data_set[0][i],
-                                                   gyr_data=data_set[1][i], )
-
-        batch_list.append(batch_mat)
-    return batch_list
-
-
 def append_single_data_feature(acc_data, gyr_data, emg_data=None):
-    batch_mat = np.zeros(len(acc_data))
+    batch_mat = np.zeros(len(emg_data))
     is_first = True
-    for each_window in range(len(acc_data)):
+    for each_window in range(len(emg_data)):
         # 针对每个识别window
         # 把这一次采集的三种数据采集类型进行拼接
         line = np.append(acc_data[each_window], gyr_data[each_window])
@@ -262,7 +250,7 @@ class DataScaler:
             self.scaler[scale_type].scale_ = self.scale_datas[type_name][1]
             data = self.scaler[scale_type].transform(data)
             data = np.where(data < 0, 0, data)
-            return np.log(1.7 * data + 1)
+            return data
         elif scale_type == 'robust':
             self.scaler[scale_type].center_ = self.scale_datas[type_name][0]
             self.scaler[scale_type].scale_ = self.scale_datas[type_name][1]

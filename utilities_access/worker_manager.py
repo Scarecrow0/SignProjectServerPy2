@@ -167,7 +167,7 @@ class MainWorkerThread(threading.Thread):
                 self.dispatch(msg)
             else:
                 queue_lock.release()
-            time.sleep(0.04)
+            time.sleep(0.01)
 
     '''
     实际收到的是个json数据包 ，先进行解包，转换为python对象（下面代码中的Message类）
@@ -232,9 +232,7 @@ class MainWorkerThread(threading.Thread):
             curr_sign_id = dj_models.acquire_latest_sign_id()
         else:
             curr_sign_id = info['sign_id']
-        recognize_info = dj_models.RecognizeInfo('',
-                                                 "middle_symbol:",
-                                                 "raw_capture_data:",
+        recognize_info = dj_models.RecognizeInfo("raw_capture_data:",
                                                  info['armband_id'],
                                                  curr_sign_id)
         recognize_info.create_recognize_history()

@@ -13,11 +13,10 @@ from .make_VGG import make_vgg
 # Lout=floor((Lin+2∗padding−dilation∗(kernel_size−1)−1)/stride+1)
 
 
-nn.LSTM
 
 WEIGHT_DECAY = 0.00001
-BATCH_SIZE = 128
-LEARNING_RATE = 0.0003
+BATCH_SIZE = 64
+LEARNING_RATE = 0.0001
 EPOCH = 160
 
 class SiameseNetwork(nn.Module):
@@ -39,7 +38,6 @@ class SiameseNetwork(nn.Module):
 
 
         self.out = torch.nn.Sequential(
-            nn.Dropout(0.25),
             nn.LeakyReLU(),
             nn.Linear(256, 128),
             nn.LeakyReLU(),
@@ -52,7 +50,7 @@ class SiameseNetwork(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv1d):
                 n = m.kernel_size[0] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
+                m.weight.data.normal_(0, math.sqrt(1. / n))
                 if m.bias is not None:
                     m.bias.data.zero_()
             elif isinstance(m, nn.BatchNorm1d):
@@ -95,16 +93,18 @@ class SiameseNetwork(nn.Module):
         lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.1)
 
         batch_k = 48
-        data_set = generate_data_set(0.06, SiameseNetworkTrainDataSet, batch_k)
+        data_set = generate_data_set(0.04, SiameseNetworkTrainDataSet, batch_k)
 
         loss_func = ContrastiveLoss()
 
         data_loader = {
             'train': DataLoader.DataLoader(data_set['train'],
                                            shuffle=True,
-                                           batch_size=BATCH_SIZE, ),
+                                           batch_size=BATCH_SIZE,
+                                           num_workers=1),
             'test': DataLoader.DataLoader(data_set['test'],
-                                          shuffle=True, )
+                                          shuffle=True,
+                                          num_workers=1)
         }
         train(model=self,
               model_name='verify_68',
@@ -116,10 +116,10 @@ class SiameseNetwork(nn.Module):
               data_set=data_set,
               data_loader=data_loader,
               test_result_output_func=test_result_output,
-              cuda_mode=1,
+              cuda_mode=0,
               print_inter=2,
               val_inter=25,
-              scheduler_step_inter=50
+              scheduler_step_inter=60
               )
 
 
@@ -193,10 +193,12 @@ class WeightBasedTripleLoss(nn.Module):
         super(WeightBasedTripleLoss, self).__init__()
         self.sampling_layer = WeightSamplingLayer(batch_k)
 
+
     def forward(self, x):
         a_s, p_s, n_s = self.sampling_layer(x)
         loss = F.triplet_margin_loss(anchor=a_s, positive=p_s, negative=n_s)
         return loss
+
 
 
 class WeightSamplingLayer:
@@ -234,7 +236,7 @@ class WeightSamplingLayer:
         ret = None
         for i in range(len(data)):
             col = data[i,]
-            col = col / (np.sqrt(np.sum(col ** 2)) + 0.00001)
+            col = col / (np.sqrt(np.sum(col ** 2)) + 0.000001)
             if ret is None:
                 ret = col
             else:
@@ -273,6 +275,7 @@ class WeightSamplingLayer:
         # use the softmax-like exp transform the score to the probabilities
         # Sample only negative examples by setting weights of
         # the same-class examples to 0.
+
 
         mask = np.ones(weights.shape)
         k = self.k

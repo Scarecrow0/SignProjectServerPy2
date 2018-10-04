@@ -121,7 +121,7 @@ class VerifyModel:
         """
         data_vector = self.verify_model(data)
         reference_vector = self.reference_vectors[predict_index][0].double()
-        threshold = self.reference_vectors[predict_index][1] + 0.08
+        threshold = self.reference_vectors[predict_index][1] * 2.5 + 0.07
         diff = F.pairwise_distance(data_vector, reference_vector)
         diff = torch.squeeze(diff).item()
         if diff > threshold:

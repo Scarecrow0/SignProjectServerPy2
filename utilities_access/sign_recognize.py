@@ -43,14 +43,28 @@ PYTORCH_INTP_PATH = 'D:\\Anaconda3\\python.exe'
 # CLF = joblib.load(CURR_DATA_DIR + "\\train_model.m")
 
 
-GESTURES_TABLE = [u'朋友 ', u'下午 ', u'天 ', u'早上 ', u'上午 ', u'中午 ', u'谢谢 ', u'对不起 ', u'没关系 ', u'昨天 ', u'今天 ',
-                  u'明天 ', u'家 ', u'回 ', u'去 ', u'迟到 ', u'交流 ', u'联系 ', u'你 ', u'什么 ', u'想 ', u'我 ', u'机场 ', u'晚上 ',
-                  u'卫生间 ', u'退 ', u'机票 ', u'着急 ', u'怎么 ', u'办 ', u'行李 ', u'可以 ', u'托运 ', u'起飞 ', u'时间 ', u'错过 ',
-                  u'改签 ', u'航班 ', u'延期 ', u'请问 ', u'怎么走 ', u'在哪里 ', u'找 ', u'不到 ', u'没收 ', u'为什么 ', u'航站楼 ',
-                  u'取票口 ', u'检票口 ', u'身份证 ', u'手表 ', u'钥匙 ', u'香烟 ', u'刀 ', u'打火机 ', u'沈阳 ', u'大家 ',
-                  u'支持 ', u'我们 ', u'医生 ', u'帮助 ', u'聋哑人 ', u'', u'充电 ', u'寄存 ', u'中国 ', u'辽宁 ', u'北京 ',
-                  u'世界 ']
+GESTURES_TABLE_CN = [u'朋友', u'下午', u'天', u'早上', u'上午', u'中午', u'谢谢', u'对不起', u'没关系', u'昨天', u'今天',
+                     u'明天', u'家', u'回', u'去', u'迟到', u'交流', u'联系', u'你', u'什么', u'想', u'我', u'机场', u'晚上',
+                     u'卫生间', u'退', u'机票', u'着急', u'怎么', u'办', u'行李', u'可以', u'托运', u'起飞', u'时间', u'错过',
+                     u'改签', u'航班', u'延期', u'请问', u'怎么走', u'在哪里', u'找', u'不到', u'没收', u'为什么', u'航站楼',
+                     u'取票口', u'检票口', u'身份证', u'手表', u'钥匙', u'香烟', u'刀', u'打火机', u'沈阳', u'大家',
+                     u'支持', u'我们', u'医生', u'帮助', u'聋哑人', u'', u'充电', u'寄存', u'中国', u'辽宁', u'北京',
+                     u'世界']
 
+GESTURES_TABLE_EN = [u'Friend', u'Afternoon', u'Day', u' Morning', u'A.M.', u'Noon', u'Thank you', u'Sorry',
+                     u'Doesn\'t matter', u'Yesterday', u'Today', u'Tomorrow', u'Home', u'Back', u'Go', u'Late',
+                     u'Communication', u'Contact', u'You', u'What', u'Think', u'I', u'Airport', u' Evening',
+                     u'Bathroom',
+                     u'Return', u'Ticket', u'Anxious', u'How', u'Do', u'Baggage', u'Can', u'Consignment', U'Time',
+                     u'Take off', u'Missed', u'Change sign', u'Flight', u'Deferred', u'Ask ', u'How to go', u'Where',
+                     u'Find ', u'Less', u'Confiscate', u'Why', u' Terminal building', u'Ticket gate', u'Ticket gate',
+                     u'Id Card', u'Watch', u'Keys', u'Cigarette', u'Knife', u'Lighter', u'Shenyang', u'Everyone',
+                     U'Support',
+                     u'We', u'Doctor', u'Help', u'Deaf people', u'', u'Charge', u'Host', u'China', u'Liaoning',
+                     u'Beijing',
+                     u'World']
+
+GESTURES_TABLE = GESTURES_TABLE_EN
 
 queue_lock = multiprocessing.Lock()
 data_scaler = process_data.DataScaler(CURR_DATA_DIR)
@@ -481,11 +495,11 @@ class ResultReceiver(threading.Thread):
             print('online recognize result:')
             print('diff: %s' % str(res['diff']))
             print('threshold: %s' % str(res['threshold']))
-            print('index: %d' % res['index'])
+            print('result: %d %s' % (res['index'], GESTURES_TABLE[res['index']]))
             print('verify_result: %s' % res['verify_result'])
             print('**************************************')
             sign_index = res['index']
-            if res['verify_result'] == 'True':
+            if res['verify_result'] == 'True' and res['index'] != 62:
                 raw_capture_data = {
                     'acc': [],
                     'emg': [],

@@ -14,7 +14,6 @@ EPOCH = 100
 BATCH_SIZE = 128
 WEIGHT_DECAY = 0.000005
 
-
 class CNN(nn.Module):
     def __init__(self):
         nn.Module.__init__(self)
@@ -22,8 +21,9 @@ class CNN(nn.Module):
         # self.convs = my_resnet(layers=[2 ,2], layer_planes=[64, 128])
         self.convs = make_vgg(input_chnl=14, layers=[2, 3], layers_chnl=[64, 128])
 
+
         self.out = nn.Sequential(
-            nn.Dropout(),
+            nn.Dropout(0.3),
             nn.LeakyReLU(),
             nn.Linear(256, 69),
 
@@ -56,6 +56,7 @@ class CNN(nn.Module):
         x = self.out(x)
         return x
 
+
     def exc_train(self):
         # only import train staff in training env
         from train_util.data_set import generate_data_set, MyDataset
@@ -66,7 +67,7 @@ class CNN(nn.Module):
         optimizer = torch.optim.Adam(self.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
         loss_func = nn.CrossEntropyLoss()
         lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1)
-        data_set = generate_data_set(0.06, MyDataset)
+        data_set = generate_data_set(0.04, MyDataset)
         data_loader = {
             'train': DataLoader.DataLoader(data_set['train'],
                                            shuffle=True,
@@ -107,6 +108,7 @@ class CNN(nn.Module):
         self.load_state_dict(torch.load(target))
 
 
+
 class HybridModel(nn.Module):
     def __init__(self):
         super(HybridModel, self).__init__()
@@ -123,6 +125,7 @@ class HybridModel(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(128, 32),
         )
+
 
     def forward(self, *x):
         cnn_x = x[0]
@@ -235,7 +238,6 @@ def test_result_output(result_list, epoch, loss):
           (epoch, loss, 100 * epoch / EPOCH,))
     print(accuracy_res)
     return accuracy_res
-
 
 def get_max_index(tensor):
     # print('置信度')
