@@ -155,6 +155,7 @@ class HybridClassifyModel(nn.Module):
         feats = self.encode(cnn_in, rnn_in)
         return self.mlp_out(feats)
 
+
     def exc_train(self):
         # only import train staff in training env
         from train_util.data_set import generate_data_set, HybridModelDataset
@@ -206,6 +207,7 @@ class HybridClassifyModel(nn.Module):
         self.load_state_dict(torch.load(target))
 
 
+
 def test_result_output(result_list, epoch, loss):
     test_result = {}
     all_t_cnt = 0
@@ -242,9 +244,13 @@ def test_result_output(result_list, epoch, loss):
 def get_max_index(tensor):
     # print('置信度')
     tensor = F.softmax(tensor, dim=1)
-    tensor = torch.max(tensor, dim=1)[1]
+    # print (tensor)
+    tensor = torch.max(tensor, dim=1)
+    probable = tensor[0].item()
+    index = tensor[1].item()
     # 对矩阵延一个固定方向取最大值
-    return torch.squeeze(tensor).data.int()
+    return index, probable
+
 
 
 def output_len(Lin, padding, kernel_size, stride):

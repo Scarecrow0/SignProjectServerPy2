@@ -23,7 +23,7 @@ GESTURE_SIZE = 160
 CAPTURE_SIZE = 160
 
 WINDOW_SIZE = 16
-MAX_CAPTURE_TIME = 90
+MAX_CAPTURE_TIME = 180
 
 RNN_STATE = 566
 SVM_STATE = 852
@@ -495,6 +495,7 @@ class ResultReceiver(threading.Thread):
             print('online recognize result:')
             print('diff: %s' % str(res['diff']))
             print('threshold: %s' % str(res['threshold']))
+            print('predict_prob: %s' % str(res['predict_prob']))
             print('result: %d %s' % (res['index'], GESTURES_TABLE[res['index']]))
             print('verify_result: %s' % res['verify_result'])
             print('**************************************')

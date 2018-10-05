@@ -227,7 +227,7 @@ class DataScaler:
             self.scale_datas = pickle.load(file_)
             file_.close()
             print("curr scalers' type: \n\"%s\"" % str(self.scale_datas.keys()))
-        except FileNotFoundError:
+        except IOError:
             print("cant load scale data, please generated before use")
             return
 
